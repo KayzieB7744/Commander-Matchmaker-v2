@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f4e78">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Commander Matchmaker Clean v2</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Commander Matchmaker</h1>
+    <div class="sub">50 decks • clean v2 • no cache</div>
+  </header>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="decks">Decks</button>
+    <button class="tab-btn" data-tab="pod">Pod Builder</button>
+    <button class="tab-btn" data-tab="duel">1v1</button>
+  </nav>
+  <main>
+    <section id="decks" class="tab-panel active">
+      <div class="panel">
+        <div class="controls two-col">
+          <label>Search<input id="searchInput" type="text" placeholder="Deck, set, tag..."></label>
+          <label>Bracket<select id="deckBracket"><option value="">All</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+          <label>Speed<select id="deckSpeed"><option value="">All</option><option value="slow">slow</option><option value="mid">mid</option><option value="fast">fast</option></select></label>
+          <label>Archetype<select id="deckArchetype"><option value="">All</option></select></label>
+        </div>
+        <div id="deckCount" class="count"></div>
+        <div id="deckList" class="card-grid"></div>
+      </div>
+    </section>
+    <section id="pod" class="tab-panel">
+      <div class="panel">
+        <div class="controls two-col">
+          <label>Bracket<select id="podBracket"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></label>
+          <label>Min Power<input id="podMinPower" type="number" min="1" max="10" step="0.5" value="6"></label>
+          <label>Max Power<input id="podMaxPower" type="number" min="1" max="10" step="0.5" value="7"></label>
+          <label>Avoid Fast<select id="podAvoidFast"><option value="no" selected>no</option><option value="yes">yes</option></select></label>
+          <label>Pod Size<select id="podSize"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></label>
+        </div>
+        <div class="button-row"><button id="rerollPodBtn" class="primary">Reroll Pod</button></div>
+        <div id="podStatus" class="count"></div>
+        <div id="podResults" class="card-grid"></div>
+      </div>
+    </section>
+    <section id="duel" class="tab-panel">
+      <div class="panel">
+        <div class="controls two-col">
+          <label>Bracket<select id="duelBracket"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></label>
+          <label>Min Power<input id="duelMinPower" type="number" min="1" max="10" step="0.5" value="6"></label>
+          <label>Max Power<input id="duelMaxPower" type="number" min="1" max="10" step="0.5" value="7"></label>
+          <label>Avoid Fast<select id="duelAvoidFast"><option value="no" selected>no</option><option value="yes">yes</option></select></label>
+        </div>
+        <div class="button-row"><button id="rerollDuelBtn" class="primary">Reroll Duel</button></div>
+        <div id="duelStatus" class="count"></div>
+        <div id="duelResults" class="card-grid"></div>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
