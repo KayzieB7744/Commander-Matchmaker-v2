@@ -44,6 +44,28 @@
     "archetype": "tempo"
   },
   {
+    "release": "2022-09-09",
+    "code": "DMC",
+    "setName": "Dominaria United Commander",
+    "preconName": "Painbow",
+    "power": 6,
+    "bracket": 3,
+    "tags": "five-color legends domain",
+    "speed": "mid",
+    "archetype": "value"
+  },
+  {
+    "release": "2022-09-09",
+    "code": "DMC",
+    "setName": "Dominaria United Commander",
+    "preconName": "Legends' Legacy",
+    "power": 6,
+    "bracket": 3,
+    "tags": "legends mardu recursion",
+    "speed": "mid",
+    "archetype": "value"
+  },
+  {
     "release": "2022-11-18",
     "code": "BRC",
     "setName": "The Brothers' War Commander",
@@ -187,6 +209,17 @@
     "archetype": "value"
   },
   {
+    "release": "2023-04-21",
+    "code": "MOC",
+    "setName": "March of the Machine Commander",
+    "preconName": "Tinker Time",
+    "power": 6,
+    "bracket": 3,
+    "tags": "artifacts tokens",
+    "speed": "mid",
+    "archetype": "value"
+  },
+  {
     "release": "2023-10-13",
     "code": "WHO",
     "setName": "Doctor Who Commander",
@@ -271,6 +304,17 @@
     "power": 5.5,
     "bracket": 2,
     "tags": "pirates",
+    "speed": "mid",
+    "archetype": "tribal"
+  },
+  {
+    "release": "2024-01-19",
+    "code": "SLD",
+    "setName": "Secret Lair Commander Deck",
+    "preconName": "Raining Cats and Dogs",
+    "power": 6.5,
+    "bracket": 3,
+    "tags": "cats dogs tokens",
     "speed": "mid",
     "archetype": "tribal"
   },
