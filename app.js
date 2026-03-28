@@ -5,6 +5,10 @@ let allDecks = [];
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const response = await fetch(`${DATA_URL}?v=${Date.now()}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
     const rawDecks = await response.json();
 
     allDecks = rawDecks
@@ -15,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     refreshAll();
   } catch (error) {
     console.error("Failed to load decks.json", error);
-    showError("Failed to load deck data. Please check decks.json.");
+    showError("Failed to load deck data. Please check decks.json and app.js.");
   }
 });
 
@@ -33,6 +37,7 @@ function normalizeDeck(deck) {
   const threatRaw = deck.threatPerception || deck.threat || null;
 
   const upgradeFrom = deck.upgradeFrom || "";
+
   let deckType =
     deck.deckType ||
     deck.type ||
@@ -150,18 +155,23 @@ function initControls() {
     "duel-reroll-count",
   ].forEach((id) => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener("change", refreshAll);
+    if (el) {
+      el.addEventListener("change", refreshAll);
+    }
   });
 }
 
 function bind(id, handler) {
   const el = document.getElementById(id);
-  if (el) el.addEventListener("click", handler);
+  if (el) {
+    el.addEventListener("click", handler);
+  }
 }
 
 function bumpNumber(id) {
   const el = document.getElementById(id);
   if (!el) return;
+
   el.value = String(toInt(el.value, 0) + 1);
   refreshAll();
 }
@@ -178,13 +188,14 @@ function generatePod() {
     maxPower: toNumber(valueOf("pod-max-power"), 7),
     avoidFast: valueOf("pod-avoid-fast") === "yes",
     podSize: toInt(valueOf("pod-size"), 4),
-    deckType: valueOf("pod-deck-type"),
-    threatFilter: valueOf("pod-threat-filter"),
+    deckType: valueOf("pod-deck-type") || "any",
+    threatFilter: valueOf("pod-threat-filter") || "any",
     maxHighThreat: toInt(valueOf("pod-max-high-threat"), 2),
     reroll: toInt(valueOf("pod-reroll-count"), 0),
   };
 
   const eligible = allDecks.filter((deck) => isEligibleForPod(deck, settings));
+
   setText("pod-eligible-count", String(eligible.length));
   setText("pod-pool", hasHomebrews() ? "Precons + Homebrews" : "Precons only");
 
@@ -209,7 +220,6 @@ function pickBalancedPod(eligible, settings) {
 
   for (const deck of sorted) {
     if (picks.length >= settings.podSize) break;
-
     if (picks.some((picked) => picked.deckName === deck.deckName)) continue;
     if (!isSpeedCompatibleWithPod(deck, picks)) continue;
     if (!passesHighThreatCap(deck, picks, settings.maxHighThreat)) continue;
@@ -239,9 +249,7 @@ function passesHighThreatCap(candidate, picks, maxHighThreat) {
 }
 
 function isHighThreat(deck) {
-  return (
-    deck.threatPerception === "High" || deck.threatPerception === "Very High"
-  );
+  return deck.threatPerception === "High" || deck.threatPerception === "Very High";
 }
 
 function renderPodResults(picks) {
@@ -260,7 +268,7 @@ function renderPodResults(picks) {
   ];
 
   for (let i = 0; i < 4; i += 1) {
-    const deck = picks[i];
+    const deck = picks[i] || null;
     setText(names[i], deck ? deck.deckName : "");
     setText(threats[i], deck ? deck.threatPerception : "");
     setText(
@@ -276,13 +284,14 @@ function generateDuel() {
     minPower: toNumber(valueOf("duel-min-power"), 6),
     maxPower: toNumber(valueOf("duel-max-power"), 7),
     avoidFast: valueOf("duel-avoid-fast") === "yes",
-    deckType: valueOf("duel-deck-type"),
-    threatFilter: valueOf("duel-threat-filter"),
+    deckType: valueOf("duel-deck-type") || "any",
+    threatFilter: valueOf("duel-threat-filter") || "any",
     avoidThreatMismatch: valueOf("duel-avoid-threat-mismatch") === "yes",
     reroll: toInt(valueOf("duel-reroll-count"), 0),
   };
 
   const eligible = allDecks.filter((deck) => isEligibleForDuel(deck, settings));
+
   setText("duel-eligible-count", String(eligible.length));
   setText("duel-pool", hasHomebrews() ? "Precons + Homebrews" : "Precons only");
 
@@ -377,17 +386,18 @@ function stableShuffle(decks, reroll, randKey) {
 
 function seededScore(baseRand, reroll, salt) {
   const saltValue = stringToSeed(salt);
-  const mixed = (baseRand * 1000000 + reroll * 7919 + saltValue) % 1000000;
-  return mixed;
+  return (baseRand * 1000000 + reroll * 7919 + saltValue) % 1000000;
 }
 
 function stringToSeed(value) {
   let hash = 0;
   const text = String(value || "");
+
   for (let i = 0; i < text.length; i += 1) {
     hash = (hash << 5) - hash + text.charCodeAt(i);
     hash |= 0;
   }
+
   return Math.abs(hash);
 }
 
@@ -402,7 +412,9 @@ function valueOf(id) {
 
 function setText(id, value) {
   const el = document.getElementById(id);
-  if (el) el.textContent = value;
+  if (el) {
+    el.textContent = value;
+  }
 }
 
 function showError(message) {
