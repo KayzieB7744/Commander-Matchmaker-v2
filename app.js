@@ -158,6 +158,18 @@ function initControls() {
       el.addEventListener("change", refreshAll);
     }
   });
+
+  const podSizeEl = document.getElementById("pod-size");
+  const maxHighThreatEl = document.getElementById("pod-max-high-threat");
+
+  if (podSizeEl && maxHighThreatEl) {
+    maxHighThreatEl.value = podSizeEl.value;
+
+    podSizeEl.addEventListener("change", () => {
+      maxHighThreatEl.value = podSizeEl.value;
+      refreshAll();
+    });
+  }
 }
 
 function bind(id, handler) {
@@ -197,7 +209,10 @@ function generatePod() {
     podSize: toInt(valueOf("pod-size"), 4),
     deckType: valueOf("pod-deck-type") || "any",
     threatFilter: valueOf("pod-threat-filter") || "any",
-    maxHighThreat: toInt(valueOf("pod-max-high-threat"), 2),
+    maxHighThreat: toInt(
+      valueOf("pod-max-high-threat"),
+      toInt(valueOf("pod-size"), 4)
+    ),
     reroll: toInt(valueOf("pod-reroll-count"), 0),
   };
 
@@ -289,7 +304,7 @@ function renderPodResults(picks) {
 
 function generateDuel() {
   const settings = {
-    bracket: toInt(valueOf("duel-bracket"), 4),
+    bracket: toInt(valueOf("duel-bracket"), 3),
     minPower: toNumber(valueOf("duel-min-power"), 6),
     maxPower: toNumber(valueOf("duel-max-power"), 7),
     avoidFast: valueOf("duel-avoid-fast") === "yes",
@@ -398,8 +413,9 @@ function stableShuffle(decks, reroll, randKey) {
 }
 
 function seededScore(baseRand, reroll, salt) {
-  const saltValue = stringToSeed(salt);
-  return (baseRand * 1000000 + reroll * 7919 + saltValue) % 1000000;
+  const combinedSeed = `${salt}::${reroll}`;
+  const saltValue = stringToSeed(combinedSeed);
+  return (baseRand * 1000000 + saltValue) % 1000000;
 }
 
 function stringToSeed(value) {
