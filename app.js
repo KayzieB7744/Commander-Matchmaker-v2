@@ -273,7 +273,9 @@ function renderPodResults(picks) {
     setText(threats[i], deck ? deck.threatPerception : "");
     setText(
       details[i],
-      deck ? `${deck.power.toFixed(1)} • ${deck.gameSpeed} • ${deck.deckType}` : ""
+      deck
+        ? `${deck.setName} • ${deck.commanderMana} • ${deck.power.toFixed(1)} • ${deck.gameSpeed} • ${deck.deckType}`
+        : ""
     );
   }
 }
@@ -355,11 +357,15 @@ function renderDuelResults(picks) {
 
   setText(
     "duel-pick-1-meta",
-    first ? `${first.power.toFixed(1)} • ${first.gameSpeed} • ${first.deckType}` : ""
+    first
+      ? `${first.setName} • ${first.commanderMana} • ${first.power.toFixed(1)} • ${first.gameSpeed} • ${first.deckType}`
+      : ""
   );
   setText(
     "duel-pick-2-meta",
-    second ? `${second.power.toFixed(1)} • ${second.gameSpeed} • ${second.deckType}` : ""
+    second
+      ? `${second.setName} • ${second.commanderMana} • ${second.power.toFixed(1)} • ${second.gameSpeed} • ${second.deckType}`
+      : ""
   );
 }
 
