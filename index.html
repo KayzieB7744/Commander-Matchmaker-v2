@@ -9,57 +9,103 @@
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="style.css" />
   <style>
+    :root {
+      --bg: #0b0f16;
+      --card: #141b25;
+      --card-2: #0f1620;
+      --border: #273244;
+      --text: #f4f7fb;
+      --muted: #b7c0cb;
+      --blue: #2f6df6;
+      --blue-2: #1f5ae0;
+      --pill: #212c3a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      background: #0f1115;
-      color: #f5f7fa;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
     .wrap {
-      max-width: 1100px;
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 28px 20px 36px;
     }
 
-    h1, h2 {
-      margin-top: 0;
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2.4rem, 4vw, 4rem);
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 2rem;
+      letter-spacing: -0.02em;
     }
 
     .subtle {
-      color: #b9c0c9;
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      line-height: 1.35;
+      max-width: 860px;
     }
 
     .error {
       display: none;
-      margin: 16px 0;
-      padding: 12px 14px;
-      border-radius: 10px;
-      background: #4a1f1f;
+      margin: 16px 0 20px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #4b1f1f;
       color: #ffdada;
+      border: 1px solid #6c2d2d;
     }
 
-    .tabs {
-      display: flex;
+    .tabs-shell {
+      margin: 18px 0 24px;
+      display: inline-flex;
       gap: 10px;
-      margin: 18px 0;
-      flex-wrap: wrap;
+      padding: 10px;
+      background: #111823;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
     }
 
     .tab-button {
-      background: #252c36;
-      color: #dce3ec;
-      border: 1px solid #343c48;
+      appearance: none;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
       border-radius: 999px;
-      padding: 10px 16px;
+      padding: 14px 22px;
+      min-width: 190px;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      font-size: 0.95rem;
+      transition: 0.18s ease;
+    }
+
+    .tab-button:hover {
+      background: #1a2330;
+      color: var(--text);
     }
 
     .tab-button.active {
-      background: #2a6df4;
-      color: #fff;
-      border-color: #2a6df4;
+      background: var(--blue);
+      color: white;
+      border-color: var(--blue-2);
+      box-shadow: 0 8px 20px rgba(47, 109, 246, 0.28);
     }
 
     .tab-panel {
@@ -71,132 +117,187 @@
     }
 
     .card {
-      background: #181c23;
-      border: 1px solid #2a313b;
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 18px;
+      background: linear-gradient(180deg, #141b25 0%, #121923 100%);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 20px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
     }
 
     .controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 14px;
     }
 
     .control {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 7px;
     }
 
     label {
-      font-size: 0.92rem;
-      color: #cdd5df;
+      color: var(--muted);
+      font-size: 0.98rem;
     }
 
-    input, select, button {
-      border-radius: 10px;
-      border: 1px solid #343c48;
-      padding: 10px 12px;
-      font-size: 0.95rem;
-    }
-
-    input, select {
-      background: #10141a;
-      color: #f5f7fa;
-    }
-
+    input,
+    select,
     button {
-      background: #2a6df4;
-      color: white;
-      cursor: pointer;
-      border: none;
+      font: inherit;
     }
 
-    button.secondary {
-      background: #2a313b;
+    input,
+    select {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #09111b;
+      color: var(--text);
+      padding: 15px 16px;
+      min-height: 56px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.18);
     }
 
     .button-row {
       display: flex;
       gap: 10px;
-      margin-top: 14px;
+      margin-top: 18px;
       flex-wrap: wrap;
     }
 
-    .result-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 14px;
+    .action-btn {
+      appearance: none;
+      border: none;
+      border-radius: 14px;
+      padding: 12px 18px;
+      min-height: 48px;
+      cursor: pointer;
+      font-weight: 600;
+      color: white;
+      background: var(--blue);
     }
 
-    .result-item {
-      background: #11161d;
-      border: 1px solid #2d3642;
-      border-radius: 12px;
-      padding: 12px;
+    .action-btn:hover {
+      background: var(--blue-2);
     }
 
-    .result-title {
-      font-weight: 700;
-      font-size: 1rem;
-      margin-bottom: 4px;
+    .action-btn.secondary {
+      background: #2a3341;
+      color: #f1f5f9;
     }
 
-    .result-meta {
-      color: #b9c0c9;
-      font-size: 0.92rem;
-      margin-bottom: 4px;
-    }
-
-    .pill-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
-
-    .pill {
-      background: #252c36;
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 0.82rem;
-      color: #dce3ec;
+    .action-btn.secondary:hover {
+      background: #374253;
     }
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-      margin-top: 14px;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
     }
 
     .stat {
-      background: #11161d;
-      border: 1px solid #2d3642;
-      border-radius: 12px;
-      padding: 10px 12px;
+      background: #0d141e;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
     }
 
     .stat-label {
-      color: #b9c0c9;
-      font-size: 0.85rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 6px;
     }
 
     .stat-value {
-      font-size: 1rem;
       font-weight: 700;
-      margin-top: 4px;
+      font-size: 1.05rem;
+    }
+
+    .result-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .result-item {
+      background: #0d141e;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      min-height: 92px;
+    }
+
+    .result-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .result-meta {
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--pill);
+      border: 1px solid #2d394a;
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: #d8e0ea;
+      font-size: 0.82rem;
+      line-height: 1;
     }
 
     .hidden-counter {
       display: none;
     }
 
-    @media (max-width: 720px) {
-      .controls {
+    @media (max-width: 820px) {
+      .wrap {
+        padding: 24px 16px 32px;
+      }
+
+      .tabs-shell {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-radius: 24px;
+      }
+
+      .tab-button {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .controls,
+      .stats {
         grid-template-columns: 1fr;
+      }
+
+      .card {
+        border-radius: 22px;
+        padding: 18px;
       }
     }
   </style>
@@ -210,7 +311,7 @@
 
     <div id="app-error" class="error"></div>
 
-    <div class="tabs">
+    <div class="tabs-shell">
       <button class="tab-button active" data-tab="pod-panel" type="button">Pod Builder</button>
       <button class="tab-button" data-tab="duel-panel" type="button">1v1 Generator</button>
     </div>
@@ -281,9 +382,9 @@
             <select id="pod-max-high-threat">
               <option value="0">0</option>
               <option value="1">1</option>
-              <option value="2" selected>2</option>
+              <option value="2">2</option>
               <option value="3">3</option>
-              <option value="4">4</option>
+              <option value="4" selected>4</option>
             </select>
           </div>
         </div>
@@ -291,8 +392,8 @@
         <input id="pod-reroll-count" class="hidden-counter" type="number" step="1" value="0" />
 
         <div class="button-row">
-          <button id="pod-generate" type="button">Generate Pod</button>
-          <button id="pod-reroll" class="secondary" type="button">Reroll</button>
+          <button id="pod-generate" class="action-btn" type="button">Generate Pod</button>
+          <button id="pod-reroll" class="action-btn secondary" type="button">Reroll</button>
         </div>
 
         <div class="stats">
@@ -351,8 +452,8 @@
             <label for="duel-bracket">Bracket</label>
             <select id="duel-bracket">
               <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4" selected>4</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
               <option value="5">5</option>
             </select>
           </div>
@@ -406,8 +507,8 @@
         <input id="duel-reroll-count" class="hidden-counter" type="number" step="1" value="0" />
 
         <div class="button-row">
-          <button id="duel-generate" type="button">Generate 1v1</button>
-          <button id="duel-reroll" class="secondary" type="button">Reroll</button>
+          <button id="duel-generate" class="action-btn" type="button">Generate 1v1</button>
+          <button id="duel-reroll" class="action-btn secondary" type="button">Reroll</button>
         </div>
 
         <div class="stats">
