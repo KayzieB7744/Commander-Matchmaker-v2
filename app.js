@@ -1,266 +1,409 @@
-let DECKS = [];
-let podSeed = Date.now();
-let duelSeed = Date.now() + 12345;
+const DATA_URL = "decks.json";
 
-const $ = (id) => document.getElementById(id);
+let allDecks = [];
 
-function mulberry32(a) {
-  return function () {
-    let t = (a += 0x6D2B79F5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function seededShuffle(arr, seed) {
-  const rng = mulberry32(seed || 1);
-  const copy = [...arr];
-
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-
-  return copy;
-}
-
-function deckCard(deck) {
-  return `
-    <article class="deck-card">
-      <div class="deck-title">${deck.preconName}</div>
-      <div class="deck-sub">${deck.setName} • ${deck.code} • ${deck.release}</div>
-      <div class="meta">
-        <span class="pill">Power ${deck.power}</span>
-        <span class="pill">Bracket ${deck.bracket}</span>
-        <span class="pill">${deck.speed}</span>
-        <span class="pill">${deck.archetype}</span>
-        <span class="pill">${deck.tags}</span>
-        ${deck.commanderMana ? `<span class="pill">${deck.commanderMana}</span>` : ""}
-      </div>
-    </article>
-  `;
-}
-
-function renderEmpty(el, text) {
-  el.innerHTML = `<div class="empty">${text}</div>`;
-}
-
-function uniqueValues(key) {
-  return [...new Set(DECKS.map((d) => d[key]).filter(Boolean))].sort();
-}
-
-function populateArchetypes() {
-  const sel = $("deckArchetype");
-  if (!sel) return;
-
-  sel.innerHTML = `<option value="">All</option>`;
-
-  uniqueValues("archetype").forEach((value) => {
-    const opt = document.createElement("option");
-    opt.value = value;
-    opt.textContent = value;
-    sel.appendChild(opt);
-  });
-}
-
-function filterDecks(filters) {
-  return DECKS.filter((deck) => {
-    const bracketOk = filters.bracket
-      ? Number(deck.bracket) === Number(filters.bracket)
-      : true;
-
-    const powerOk =
-      Number(deck.power) >= Number(filters.minPower) &&
-      Number(deck.power) <= Number(filters.maxPower);
-
-    const speedOk = filters.avoidFast ? deck.speed !== "fast" : true;
-
-    return bracketOk && powerOk && speedOk;
-  });
-}
-
-function renderDeckList() {
-  const q = ($("searchInput")?.value || "").trim().toLowerCase();
-  const bracket = $("deckBracket")?.value || "";
-  const speed = $("deckSpeed")?.value || "";
-  const archetype = $("deckArchetype")?.value || "";
-
-  const list = DECKS.filter((deck) => {
-    const text = [
-      deck.preconName,
-      deck.setName,
-      deck.code,
-      deck.tags,
-      deck.archetype,
-      deck.commanderMana || "",
-    ]
-      .join(" ")
-      .toLowerCase();
-
-    return (
-      (!q || text.includes(q)) &&
-      (!bracket || Number(deck.bracket) === Number(bracket)) &&
-      (!speed || deck.speed === speed) &&
-      (!archetype || deck.archetype === archetype)
-    );
-  });
-
-  const deckCount = $("deckCount");
-  const deckList = $("deckList");
-
-  if (deckCount) {
-    deckCount.textContent = `${list.length} deck${list.length === 1 ? "" : "s"} shown`;
-  }
-
-  if (!deckList) return;
-
-  if (!list.length) {
-    renderEmpty(deckList, "No decks match those filters.");
-    return;
-  }
-
-  deckList.innerHTML = list.map(deckCard).join("");
-}
-
-function buildPod() {
-  const filters = {
-    bracket: $("podBracket")?.value || "",
-    minPower: Number($("podMinPower")?.value || 1),
-    maxPower: Number($("podMaxPower")?.value || 10),
-    avoidFast: ($("podAvoidFast")?.value || "no") === "yes",
-  };
-
-  const size = Number($("podSize")?.value || 4);
-  const pool = filterDecks(filters);
-
-  const podStatus = $("podStatus");
-  const podResults = $("podResults");
-
-  if (podStatus) {
-    podStatus.textContent = `${pool.length} eligible deck${pool.length === 1 ? "" : "s"}`;
-  }
-
-  if (!podResults) return;
-
-  if (pool.length < size) {
-    renderEmpty(
-      podResults,
-      `Only ${pool.length} eligible deck${pool.length === 1 ? "" : "s"} found. Widen the filters or reduce pod size.`
-    );
-    return;
-  }
-
-  const pod = seededShuffle(pool, podSeed).slice(0, size);
-  podResults.innerHTML = pod.map(deckCard).join("");
-}
-
-function buildDuel() {
-  const filters = {
-    bracket: $("duelBracket")?.value || "",
-    minPower: Number($("duelMinPower")?.value || 1),
-    maxPower: Number($("duelMaxPower")?.value || 10),
-    avoidFast: ($("duelAvoidFast")?.value || "no") === "yes",
-  };
-
-  const pool = filterDecks(filters);
-
-  const duelStatus = $("duelStatus");
-  const duelResults = $("duelResults");
-
-  if (duelStatus) {
-    duelStatus.textContent = `${pool.length} eligible deck${pool.length === 1 ? "" : "s"}`;
-  }
-
-  if (!duelResults) return;
-
-  if (pool.length < 2) {
-    renderEmpty(duelResults, "Need at least 2 eligible decks.");
-    return;
-  }
-
-  const duel = seededShuffle(pool, duelSeed).slice(0, 2);
-  duelResults.innerHTML = duel.map(deckCard).join("");
-}
-
-function wireTabs() {
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
-
-      btn.classList.add("active");
-
-      const tabId = btn.dataset.tab;
-      const panel = document.getElementById(tabId);
-      if (panel) panel.classList.add("active");
-    });
-  });
-}
-
-function wireEvents() {
-  ["searchInput", "deckBracket", "deckSpeed", "deckArchetype"].forEach((id) => {
-    const el = $(id);
-    if (el) el.addEventListener("input", renderDeckList);
-    if (el) el.addEventListener("change", renderDeckList);
-  });
-
-  ["podBracket", "podMinPower", "podMaxPower", "podAvoidFast", "podSize"].forEach((id) => {
-    const el = $(id);
-    if (el) el.addEventListener("input", buildPod);
-    if (el) el.addEventListener("change", buildPod);
-  });
-
-  ["duelBracket", "duelMinPower", "duelMaxPower", "duelAvoidFast"].forEach((id) => {
-    const el = $(id);
-    if (el) el.addEventListener("input", buildDuel);
-    if (el) el.addEventListener("change", buildDuel);
-  });
-
-  const rerollPodBtn = $("rerollPodBtn");
-  if (rerollPodBtn) {
-    rerollPodBtn.addEventListener("click", () => {
-      podSeed = Math.floor(Math.random() * 1_000_000_000);
-      buildPod();
-    });
-  }
-
-  const rerollDuelBtn = $("rerollDuelBtn");
-  if (rerollDuelBtn) {
-    rerollDuelBtn.addEventListener("click", () => {
-      duelSeed = Math.floor(Math.random() * 1_000_000_000);
-      buildDuel();
-    });
-  }
-}
-
-async function init() {
+document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const res = await fetch(`decks.json?t=${Date.now()}`);
-    if (!res.ok) {
-      throw new Error(`Failed to load decks.json (${res.status})`);
-    }
+    const response = await fetch(`${DATA_URL}?v=${Date.now()}`);
+    const rawDecks = await response.json();
 
-    DECKS = await res.json();
+    allDecks = rawDecks
+      .map(normalizeDeck)
+      .filter((deck) => deck && deck.deckName);
 
-    populateArchetypes();
-    wireTabs();
-    wireEvents();
+    initControls();
+    refreshAll();
+  } catch (error) {
+    console.error("Failed to load decks.json", error);
+    showError("Failed to load deck data. Please check decks.json.");
+  }
+});
 
-    renderDeckList();
-    buildPod();
-    buildDuel();
-  } catch (err) {
-    console.error(err);
+function normalizeDeck(deck) {
+  const deckName = deck.deckName || deck.name || "";
+  const power = toNumber(deck.power, 0);
+  const bracket = toInt(deck.bracket, 0);
 
-    const deckList = $("deckList");
-    const podResults = $("podResults");
-    const duelResults = $("duelResults");
+  const gameSpeedRaw = deck.gameSpeed || deck.speed || "Medium";
+  const threatRaw = deck.threatPerception || deck.threat || null;
 
-    if (deckList) renderEmpty(deckList, "Could not load deck data.");
-    if (podResults) renderEmpty(podResults, "Could not load deck data.");
-    if (duelResults) renderEmpty(duelResults, "Could not load deck data.");
+  const upgradeFrom = deck.upgradeFrom || "";
+  let deckType =
+    deck.deckType ||
+    deck.type ||
+    deck.source ||
+    (upgradeFrom ? "Upgraded Precon" : "Homebrew");
+
+  deckType = normalizeDeckType(deckType);
+
+  return {
+    include: toInclude(deck.include),
+    releaseDate: deck.releaseDate || "",
+    code: deck.code || "",
+    setName: deck.setName || "",
+    deckName,
+    commander: deck.commander || "",
+    commanderMana: deck.commanderMana || "",
+    power,
+    bracket,
+    gameSpeed: normalizeGameSpeed(gameSpeedRaw),
+    threatPerception: normalizeThreatPerception(
+      threatRaw || deriveThreatPerception(power, bracket, deckType)
+    ),
+    archetype: deck.archetype || "",
+    tags: deck.tags || "",
+    deckType,
+    version: deck.version || "",
+    upgradeFrom,
+    podRand: typeof deck.podRand === "number" ? deck.podRand : Math.random(),
+    duelRand: typeof deck.duelRand === "number" ? deck.duelRand : Math.random(),
+  };
+}
+
+function normalizeDeckType(value) {
+  const v = String(value || "").trim().toLowerCase();
+
+  if (v === "precon") return "Precon";
+  if (v === "homebrew") return "Homebrew";
+  if (v === "upgraded precon") return "Upgraded Precon";
+  if (v === "optimized") return "Optimized";
+  if (v === "cedh") return "cEDH";
+  if (v === "hbw") return "Homebrew";
+  if (v === "other") return "Homebrew";
+
+  return "Homebrew";
+}
+
+function normalizeGameSpeed(value) {
+  const v = String(value || "").trim().toLowerCase();
+
+  if (v === "slow") return "Slow";
+  if (v === "medium" || v === "mid") return "Medium";
+  if (v === "fast") return "Fast";
+
+  return "Medium";
+}
+
+function normalizeThreatPerception(value) {
+  const v = String(value || "").trim().toLowerCase();
+
+  if (v === "low") return "Low";
+  if (v === "medium") return "Medium";
+  if (v === "high") return "High";
+  if (v === "very high") return "Very High";
+
+  return "Medium";
+}
+
+function deriveThreatPerception(power, bracket, deckType) {
+  if (deckType === "Precon" && power <= 5.5) return "Medium";
+  if (bracket <= 2) return "Medium";
+  if (bracket === 3) return power >= 6.5 ? "High" : "Medium";
+  if (bracket >= 4) return power >= 7.5 ? "Very High" : "High";
+  return "Medium";
+}
+
+function toInclude(value) {
+  if (value === 1 || value === "1" || value === true) return 1;
+  if (value === 0 || value === "0" || value === false) return 0;
+  return 1;
+}
+
+function toNumber(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function toInt(value, fallback = 0) {
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function initControls() {
+  bind("pod-generate", generatePod);
+  bind("pod-reroll", () => bumpNumber("pod-reroll-count"));
+  bind("duel-generate", generateDuel);
+  bind("duel-reroll", () => bumpNumber("duel-reroll-count"));
+
+  [
+    "pod-bracket",
+    "pod-min-power",
+    "pod-max-power",
+    "pod-avoid-fast",
+    "pod-size",
+    "pod-deck-type",
+    "pod-threat-filter",
+    "pod-max-high-threat",
+    "pod-reroll-count",
+    "duel-bracket",
+    "duel-min-power",
+    "duel-max-power",
+    "duel-avoid-fast",
+    "duel-deck-type",
+    "duel-threat-filter",
+    "duel-avoid-threat-mismatch",
+    "duel-reroll-count",
+  ].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("change", refreshAll);
+  });
+}
+
+function bind(id, handler) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("click", handler);
+}
+
+function bumpNumber(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = String(toInt(el.value, 0) + 1);
+  refreshAll();
+}
+
+function refreshAll() {
+  generatePod();
+  generateDuel();
+}
+
+function generatePod() {
+  const settings = {
+    bracket: toInt(valueOf("pod-bracket"), 3),
+    minPower: toNumber(valueOf("pod-min-power"), 6),
+    maxPower: toNumber(valueOf("pod-max-power"), 7),
+    avoidFast: valueOf("pod-avoid-fast") === "yes",
+    podSize: toInt(valueOf("pod-size"), 4),
+    deckType: valueOf("pod-deck-type"),
+    threatFilter: valueOf("pod-threat-filter"),
+    maxHighThreat: toInt(valueOf("pod-max-high-threat"), 2),
+    reroll: toInt(valueOf("pod-reroll-count"), 0),
+  };
+
+  const eligible = allDecks.filter((deck) => isEligibleForPod(deck, settings));
+  setText("pod-eligible-count", String(eligible.length));
+  setText("pod-pool", hasHomebrews() ? "Precons + Homebrews" : "Precons only");
+
+  const picks = pickBalancedPod(eligible, settings);
+  renderPodResults(picks);
+}
+
+function isEligibleForPod(deck, settings) {
+  if (deck.include !== 1) return false;
+  if (!deck.deckName) return false;
+  if (deck.bracket !== settings.bracket) return false;
+  if (deck.power < settings.minPower || deck.power > settings.maxPower) return false;
+  if (settings.avoidFast && deck.gameSpeed === "Fast") return false;
+  if (settings.deckType !== "any" && deck.deckType !== settings.deckType) return false;
+  if (!passesThreatFilter(deck, settings.threatFilter)) return false;
+  return true;
+}
+
+function pickBalancedPod(eligible, settings) {
+  const sorted = stableShuffle(eligible, settings.reroll, "podRand");
+  const picks = [];
+
+  for (const deck of sorted) {
+    if (picks.length >= settings.podSize) break;
+
+    if (picks.some((picked) => picked.deckName === deck.deckName)) continue;
+    if (!isSpeedCompatibleWithPod(deck, picks)) continue;
+    if (!passesHighThreatCap(deck, picks, settings.maxHighThreat)) continue;
+
+    picks.push(deck);
+  }
+
+  return picks;
+}
+
+function isSpeedCompatibleWithPod(candidate, picks) {
+  if (picks.length === 0) return true;
+
+  const speeds = picks.map((d) => d.gameSpeed);
+  const all = [...speeds, candidate.gameSpeed];
+
+  const hasSlow = all.includes("Slow");
+  const hasFast = all.includes("Fast");
+
+  return !(hasSlow && hasFast);
+}
+
+function passesHighThreatCap(candidate, picks, maxHighThreat) {
+  const currentHighThreat = picks.filter(isHighThreat).length;
+  const nextHighThreat = currentHighThreat + (isHighThreat(candidate) ? 1 : 0);
+  return nextHighThreat <= maxHighThreat;
+}
+
+function isHighThreat(deck) {
+  return (
+    deck.threatPerception === "High" || deck.threatPerception === "Very High"
+  );
+}
+
+function renderPodResults(picks) {
+  const names = ["pod-pick-1", "pod-pick-2", "pod-pick-3", "pod-pick-4"];
+  const threats = [
+    "pod-pick-1-threat",
+    "pod-pick-2-threat",
+    "pod-pick-3-threat",
+    "pod-pick-4-threat",
+  ];
+  const details = [
+    "pod-pick-1-meta",
+    "pod-pick-2-meta",
+    "pod-pick-3-meta",
+    "pod-pick-4-meta",
+  ];
+
+  for (let i = 0; i < 4; i += 1) {
+    const deck = picks[i];
+    setText(names[i], deck ? deck.deckName : "");
+    setText(threats[i], deck ? deck.threatPerception : "");
+    setText(
+      details[i],
+      deck ? `${deck.power.toFixed(1)} • ${deck.gameSpeed} • ${deck.deckType}` : ""
+    );
   }
 }
 
-init();
+function generateDuel() {
+  const settings = {
+    bracket: toInt(valueOf("duel-bracket"), 4),
+    minPower: toNumber(valueOf("duel-min-power"), 6),
+    maxPower: toNumber(valueOf("duel-max-power"), 7),
+    avoidFast: valueOf("duel-avoid-fast") === "yes",
+    deckType: valueOf("duel-deck-type"),
+    threatFilter: valueOf("duel-threat-filter"),
+    avoidThreatMismatch: valueOf("duel-avoid-threat-mismatch") === "yes",
+    reroll: toInt(valueOf("duel-reroll-count"), 0),
+  };
+
+  const eligible = allDecks.filter((deck) => isEligibleForDuel(deck, settings));
+  setText("duel-eligible-count", String(eligible.length));
+  setText("duel-pool", hasHomebrews() ? "Precons + Homebrews" : "Precons only");
+
+  const picks = pickBalancedDuel(eligible, settings);
+  renderDuelResults(picks);
+}
+
+function isEligibleForDuel(deck, settings) {
+  if (deck.include !== 1) return false;
+  if (!deck.deckName) return false;
+  if (deck.bracket !== settings.bracket) return false;
+  if (deck.power < settings.minPower || deck.power > settings.maxPower) return false;
+  if (settings.avoidFast && deck.gameSpeed === "Fast") return false;
+  if (settings.deckType !== "any" && deck.deckType !== settings.deckType) return false;
+  if (!passesThreatFilter(deck, settings.threatFilter)) return false;
+  return true;
+}
+
+function pickBalancedDuel(eligible, settings) {
+  const sorted = stableShuffle(eligible, settings.reroll, "duelRand");
+  if (sorted.length === 0) return [];
+
+  const first = sorted[0];
+  let second = null;
+
+  for (let i = 1; i < sorted.length; i += 1) {
+    const candidate = sorted[i];
+    if (candidate.deckName === first.deckName) continue;
+    if (!isSpeedCompatiblePair(first, candidate)) continue;
+    if (settings.avoidThreatMismatch && isThreatMismatch(first, candidate)) continue;
+
+    second = candidate;
+    break;
+  }
+
+  return second ? [first, second] : [first];
+}
+
+function isSpeedCompatiblePair(a, b) {
+  const speeds = [a.gameSpeed, b.gameSpeed];
+  return !(speeds.includes("Slow") && speeds.includes("Fast"));
+}
+
+function isThreatMismatch(a, b) {
+  const lowMedium = ["Low", "Medium"];
+  return (
+    (a.threatPerception === "Very High" && lowMedium.includes(b.threatPerception)) ||
+    (b.threatPerception === "Very High" && lowMedium.includes(a.threatPerception))
+  );
+}
+
+function renderDuelResults(picks) {
+  const first = picks[0] || null;
+  const second = picks[1] || null;
+
+  setText("duel-pick-1", first ? first.deckName : "");
+  setText("duel-pick-2", second ? second.deckName : "");
+
+  setText("duel-pick-1-threat", first ? first.threatPerception : "");
+  setText("duel-pick-2-threat", second ? second.threatPerception : "");
+
+  setText(
+    "duel-pick-1-meta",
+    first ? `${first.power.toFixed(1)} • ${first.gameSpeed} • ${first.deckType}` : ""
+  );
+  setText(
+    "duel-pick-2-meta",
+    second ? `${second.power.toFixed(1)} • ${second.gameSpeed} • ${second.deckType}` : ""
+  );
+}
+
+function passesThreatFilter(deck, filterValue) {
+  if (filterValue === "any") return true;
+  if (filterValue === "exclude very high") {
+    return deck.threatPerception !== "Very High";
+  }
+  if (filterValue === "low-medium only") {
+    return ["Low", "Medium"].includes(deck.threatPerception);
+  }
+  return true;
+}
+
+function stableShuffle(decks, reroll, randKey) {
+  return [...decks].sort((a, b) => {
+    const aScore = seededScore(a[randKey], reroll, a.deckName);
+    const bScore = seededScore(b[randKey], reroll, b.deckName);
+
+    if (aScore !== bScore) return aScore - bScore;
+    return a.deckName.localeCompare(b.deckName);
+  });
+}
+
+function seededScore(baseRand, reroll, salt) {
+  const saltValue = stringToSeed(salt);
+  const mixed = (baseRand * 1000000 + reroll * 7919 + saltValue) % 1000000;
+  return mixed;
+}
+
+function stringToSeed(value) {
+  let hash = 0;
+  const text = String(value || "");
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash << 5) - hash + text.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function hasHomebrews() {
+  return allDecks.some((deck) => deck.deckType !== "Precon");
+}
+
+function valueOf(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : "";
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function showError(message) {
+  const errorBox = document.getElementById("app-error");
+  if (errorBox) {
+    errorBox.textContent = message;
+    errorBox.style.display = "block";
+  }
+}
