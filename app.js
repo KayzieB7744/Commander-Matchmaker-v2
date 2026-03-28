@@ -35,7 +35,6 @@ function normalizeDeck(deck) {
 
   const gameSpeedRaw = deck.gameSpeed || deck.speed || "Medium";
   const threatRaw = deck.threatPerception || deck.threat || null;
-
   const upgradeFrom = deck.upgradeFrom || "";
 
   let deckType =
@@ -131,9 +130,9 @@ function toInt(value, fallback = 0) {
 
 function initControls() {
   bind("pod-generate", generatePod);
-  bind("pod-reroll", () => bumpNumber("pod-reroll-count"));
+  bind("pod-reroll", rerollPod);
   bind("duel-generate", generateDuel);
-  bind("duel-reroll", () => bumpNumber("duel-reroll-count"));
+  bind("duel-reroll", rerollDuel);
 
   [
     "pod-bracket",
@@ -168,12 +167,20 @@ function bind(id, handler) {
   }
 }
 
+function rerollPod() {
+  bumpNumber("pod-reroll-count");
+  generatePod();
+}
+
+function rerollDuel() {
+  bumpNumber("duel-reroll-count");
+  generateDuel();
+}
+
 function bumpNumber(id) {
   const el = document.getElementById(id);
   if (!el) return;
-
   el.value = String(toInt(el.value, 0) + 1);
-  refreshAll();
 }
 
 function refreshAll() {
