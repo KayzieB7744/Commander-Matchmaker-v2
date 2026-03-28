@@ -2,10 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Commander Matchmaker Clean v2</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
@@ -25,7 +22,7 @@
       padding: 24px;
     }
 
-    h1, h2, h3 {
+    h1, h2 {
       margin-top: 0;
     }
 
@@ -42,10 +39,35 @@
       color: #ffdada;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 14px;
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin: 18px 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-button {
+      background: #252c36;
+      color: #dce3ec;
+      border: 1px solid #343c48;
+      border-radius: 999px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .tab-button.active {
+      background: #2a6df4;
+      color: #fff;
+      border-color: #2a6df4;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
     }
 
     .card {
@@ -168,6 +190,10 @@
       margin-top: 4px;
     }
 
+    .hidden-counter {
+      display: none;
+    }
+
     @media (max-width: 720px) {
       .controls {
         grid-template-columns: 1fr;
@@ -184,8 +210,13 @@
 
     <div id="app-error" class="error"></div>
 
-    <div class="grid">
-      <section class="card">
+    <div class="tabs">
+      <button class="tab-button active" data-tab="pod-panel" type="button">Pod Builder</button>
+      <button class="tab-button" data-tab="duel-panel" type="button">1v1 Generator</button>
+    </div>
+
+    <section id="pod-panel" class="tab-panel active">
+      <div class="card">
         <h2>Pod Builder</h2>
 
         <div class="controls">
@@ -255,16 +286,13 @@
               <option value="4">4</option>
             </select>
           </div>
-
-          <div class="control">
-            <label for="pod-reroll-count">Reroll</label>
-            <input id="pod-reroll-count" type="number" step="1" value="0" />
-          </div>
         </div>
 
+        <input id="pod-reroll-count" class="hidden-counter" type="number" step="1" value="0" />
+
         <div class="button-row">
-          <button id="pod-generate">Generate Pod</button>
-          <button id="pod-reroll" class="secondary">Reroll</button>
+          <button id="pod-generate" type="button">Generate Pod</button>
+          <button id="pod-reroll" class="secondary" type="button">Reroll</button>
         </div>
 
         <div class="stats">
@@ -311,9 +339,11 @@
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="card">
+    <section id="duel-panel" class="tab-panel">
+      <div class="card">
         <h2>1v1 Generator</h2>
 
         <div class="controls">
@@ -371,16 +401,13 @@
               <option value="yes">yes</option>
             </select>
           </div>
-
-          <div class="control">
-            <label for="duel-reroll-count">Reroll</label>
-            <input id="duel-reroll-count" type="number" step="1" value="0" />
-          </div>
         </div>
 
+        <input id="duel-reroll-count" class="hidden-counter" type="number" step="1" value="0" />
+
         <div class="button-row">
-          <button id="duel-generate">Generate 1v1</button>
-          <button id="duel-reroll" class="secondary">Reroll</button>
+          <button id="duel-generate" type="button">Generate 1v1</button>
+          <button id="duel-reroll" class="secondary" type="button">Reroll</button>
         </div>
 
         <div class="stats">
@@ -411,9 +438,28 @@
             </div>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const tabButtons = document.querySelectorAll(".tab-button");
+      const tabPanels = document.querySelectorAll(".tab-panel");
+
+      tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const target = button.getAttribute("data-tab");
+
+          tabButtons.forEach((btn) => btn.classList.remove("active"));
+          tabPanels.forEach((panel) => panel.classList.remove("active"));
+
+          button.classList.add("active");
+          document.getElementById(target).classList.add("active");
+        });
+      });
+    });
+  </script>
 
   <script src="app.js"></script>
 </body>
