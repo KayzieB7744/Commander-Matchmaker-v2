@@ -20,7 +20,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function normalizeDeck(deck) {
-  const deckName = deck.deckName || deck.name || "";
+  const deckName =
+    deck.deckName ||
+    deck.preconName ||
+    deck.name ||
+    "";
+
   const power = toNumber(deck.power, 0);
   const bracket = toInt(deck.bracket, 0);
 
@@ -32,13 +37,13 @@ function normalizeDeck(deck) {
     deck.deckType ||
     deck.type ||
     deck.source ||
-    (upgradeFrom ? "Upgraded Precon" : "Homebrew");
+    (deck.preconName ? "Precon" : (upgradeFrom ? "Upgraded Precon" : "Homebrew"));
 
   deckType = normalizeDeckType(deckType);
 
   return {
     include: toInclude(deck.include),
-    releaseDate: deck.releaseDate || "",
+    releaseDate: deck.releaseDate || deck.release || "",
     code: deck.code || "",
     setName: deck.setName || "",
     deckName,
@@ -58,20 +63,6 @@ function normalizeDeck(deck) {
     podRand: typeof deck.podRand === "number" ? deck.podRand : Math.random(),
     duelRand: typeof deck.duelRand === "number" ? deck.duelRand : Math.random(),
   };
-}
-
-function normalizeDeckType(value) {
-  const v = String(value || "").trim().toLowerCase();
-
-  if (v === "precon") return "Precon";
-  if (v === "homebrew") return "Homebrew";
-  if (v === "upgraded precon") return "Upgraded Precon";
-  if (v === "optimized") return "Optimized";
-  if (v === "cedh") return "cEDH";
-  if (v === "hbw") return "Homebrew";
-  if (v === "other") return "Homebrew";
-
-  return "Homebrew";
 }
 
 function normalizeGameSpeed(value) {
