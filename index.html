@@ -1,66 +1,420 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#1f4e78">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
   <title>Commander Matchmaker Clean v2</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #0f1115;
+      color: #f5f7fa;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    .subtle {
+      color: #b9c0c9;
+    }
+
+    .error {
+      display: none;
+      margin: 16px 0;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #4a1f1f;
+      color: #ffdada;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: #181c23;
+      border: 1px solid #2a313b;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .control {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.92rem;
+      color: #cdd5df;
+    }
+
+    input, select, button {
+      border-radius: 10px;
+      border: 1px solid #343c48;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+    }
+
+    input, select {
+      background: #10141a;
+      color: #f5f7fa;
+    }
+
+    button {
+      background: #2a6df4;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    button.secondary {
+      background: #2a313b;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .result-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .result-item {
+      background: #11161d;
+      border: 1px solid #2d3642;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .result-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .result-meta {
+      color: #b9c0c9;
+      font-size: 0.92rem;
+      margin-bottom: 4px;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .pill {
+      background: #252c36;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.82rem;
+      color: #dce3ec;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: #11161d;
+      border: 1px solid #2d3642;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .stat-label {
+      color: #b9c0c9;
+      font-size: 0.85rem;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 720px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-  <header class="topbar">
-    <h1>Commander Matchmaker</h1>
-    <div class="sub">50 decks • clean v2 • no cache</div>
-  </header>
-  <nav class="tabs">
-    <button class="tab-btn active" data-tab="decks">Decks</button>
-    <button class="tab-btn" data-tab="pod">Pod Builder</button>
-    <button class="tab-btn" data-tab="duel">1v1</button>
-  </nav>
-  <main>
-    <section id="decks" class="tab-panel active">
-      <div class="panel">
-        <div class="controls two-col">
-          <label>Search<input id="searchInput" type="text" placeholder="Deck, set, tag..."></label>
-          <label>Bracket<select id="deckBracket"><option value="">All</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
-          <label>Speed<select id="deckSpeed"><option value="">All</option><option value="slow">slow</option><option value="mid">mid</option><option value="fast">fast</option></select></label>
-          <label>Archetype<select id="deckArchetype"><option value="">All</option></select></label>
+  <div class="wrap">
+    <h1>Commander Matchmaker Clean v2</h1>
+    <p class="subtle">
+      Balanced Commander pods and fair 1v1 matchups using Power, Game Speed, and Threat Perception.
+    </p>
+
+    <div id="app-error" class="error"></div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Pod Builder</h2>
+
+        <div class="controls">
+          <div class="control">
+            <label for="pod-bracket">Bracket</label>
+            <select id="pod-bracket">
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="pod-size">Pod Size</label>
+            <select id="pod-size">
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4" selected>4</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="pod-min-power">Min Power</label>
+            <input id="pod-min-power" type="number" step="0.1" value="6" />
+          </div>
+
+          <div class="control">
+            <label for="pod-max-power">Max Power</label>
+            <input id="pod-max-power" type="number" step="0.1" value="7" />
+          </div>
+
+          <div class="control">
+            <label for="pod-avoid-fast">Avoid Fast</label>
+            <select id="pod-avoid-fast">
+              <option value="no" selected>no</option>
+              <option value="yes">yes</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="pod-deck-type">Deck Type</label>
+            <select id="pod-deck-type">
+              <option value="any" selected>any</option>
+              <option value="Precon">Precon</option>
+              <option value="Homebrew">Homebrew</option>
+              <option value="Upgraded Precon">Upgraded Precon</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="pod-threat-filter">Threat Filter</label>
+            <select id="pod-threat-filter">
+              <option value="any" selected>any</option>
+              <option value="exclude very high">exclude very high</option>
+              <option value="low-medium only">low-medium only</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="pod-max-high-threat">Max High Threat</label>
+            <select id="pod-max-high-threat">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="pod-reroll-count">Reroll</label>
+            <input id="pod-reroll-count" type="number" step="1" value="0" />
+          </div>
         </div>
-        <div id="deckCount" class="count"></div>
-        <div id="deckList" class="card-grid"></div>
-      </div>
-    </section>
-    <section id="pod" class="tab-panel">
-      <div class="panel">
-        <div class="controls two-col">
-          <label>Bracket<select id="podBracket"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></label>
-          <label>Min Power<input id="podMinPower" type="number" min="1" max="10" step="0.5" value="6"></label>
-          <label>Max Power<input id="podMaxPower" type="number" min="1" max="10" step="0.5" value="7"></label>
-          <label>Avoid Fast<select id="podAvoidFast"><option value="no" selected>no</option><option value="yes">yes</option></select></label>
-          <label>Pod Size<select id="podSize"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></label>
+
+        <div class="button-row">
+          <button id="pod-generate">Generate Pod</button>
+          <button id="pod-reroll" class="secondary">Reroll</button>
         </div>
-        <div class="button-row"><button id="rerollPodBtn" class="primary">Reroll Pod</button></div>
-        <div id="podStatus" class="count"></div>
-        <div id="podResults" class="card-grid"></div>
-      </div>
-    </section>
-    <section id="duel" class="tab-panel">
-      <div class="panel">
-        <div class="controls two-col">
-          <label>Bracket<select id="duelBracket"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></label>
-          <label>Min Power<input id="duelMinPower" type="number" min="1" max="10" step="0.5" value="6"></label>
-          <label>Max Power<input id="duelMaxPower" type="number" min="1" max="10" step="0.5" value="7"></label>
-          <label>Avoid Fast<select id="duelAvoidFast"><option value="no" selected>no</option><option value="yes">yes</option></select></label>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Eligible deck count</div>
+            <div id="pod-eligible-count" class="stat-value">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Pool</div>
+            <div id="pod-pool" class="stat-value">—</div>
+          </div>
         </div>
-        <div class="button-row"><button id="rerollDuelBtn" class="primary">Reroll Duel</button></div>
-        <div id="duelStatus" class="count"></div>
-        <div id="duelResults" class="card-grid"></div>
-      </div>
-    </section>
-  </main>
+
+        <div class="result-list">
+          <div class="result-item">
+            <div id="pod-pick-1" class="result-title"></div>
+            <div id="pod-pick-1-meta" class="result-meta"></div>
+            <div class="pill-row">
+              <span class="pill">Threat: <span id="pod-pick-1-threat"></span></span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div id="pod-pick-2" class="result-title"></div>
+            <div id="pod-pick-2-meta" class="result-meta"></div>
+            <div class="pill-row">
+              <span class="pill">Threat: <span id="pod-pick-2-threat"></span></span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div id="pod-pick-3" class="result-title"></div>
+            <div id="pod-pick-3-meta" class="result-meta"></div>
+            <div class="pill-row">
+              <span class="pill">Threat: <span id="pod-pick-3-threat"></span></span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div id="pod-pick-4" class="result-title"></div>
+            <div id="pod-pick-4-meta" class="result-meta"></div>
+            <div class="pill-row">
+              <span class="pill">Threat: <span id="pod-pick-4-threat"></span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>1v1 Generator</h2>
+
+        <div class="controls">
+          <div class="control">
+            <label for="duel-bracket">Bracket</label>
+            <select id="duel-bracket">
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4" selected>4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="duel-min-power">Min Power</label>
+            <input id="duel-min-power" type="number" step="0.1" value="6" />
+          </div>
+
+          <div class="control">
+            <label for="duel-max-power">Max Power</label>
+            <input id="duel-max-power" type="number" step="0.1" value="7" />
+          </div>
+
+          <div class="control">
+            <label for="duel-avoid-fast">Avoid Fast</label>
+            <select id="duel-avoid-fast">
+              <option value="no" selected>no</option>
+              <option value="yes">yes</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="duel-deck-type">Deck Type</label>
+            <select id="duel-deck-type">
+              <option value="any" selected>any</option>
+              <option value="Precon">Precon</option>
+              <option value="Homebrew">Homebrew</option>
+              <option value="Upgraded Precon">Upgraded Precon</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="duel-threat-filter">Threat Filter</label>
+            <select id="duel-threat-filter">
+              <option value="any" selected>any</option>
+              <option value="exclude very high">exclude very high</option>
+              <option value="low-medium only">low-medium only</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="duel-avoid-threat-mismatch">Avoid Threat Mismatch</label>
+            <select id="duel-avoid-threat-mismatch">
+              <option value="no" selected>no</option>
+              <option value="yes">yes</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="duel-reroll-count">Reroll</label>
+            <input id="duel-reroll-count" type="number" step="1" value="0" />
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button id="duel-generate">Generate 1v1</button>
+          <button id="duel-reroll" class="secondary">Reroll</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Eligible deck count</div>
+            <div id="duel-eligible-count" class="stat-value">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Pool</div>
+            <div id="duel-pool" class="stat-value">—</div>
+          </div>
+        </div>
+
+        <div class="result-list">
+          <div class="result-item">
+            <div id="duel-pick-1" class="result-title"></div>
+            <div id="duel-pick-1-meta" class="result-meta"></div>
+            <div class="pill-row">
+              <span class="pill">Threat: <span id="duel-pick-1-threat"></span></span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div id="duel-pick-2" class="result-title"></div>
+            <div id="duel-pick-2-meta" class="result-meta"></div>
+            <div class="pill-row">
+              <span class="pill">Threat: <span id="duel-pick-2-threat"></span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
