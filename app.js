@@ -65,6 +65,20 @@ function normalizeDeck(deck) {
   };
 }
 
+function normalizeDeckType(value) {
+  const v = String(value || "").trim().toLowerCase();
+
+  if (v === "precon") return "Precon";
+  if (v === "homebrew") return "Homebrew";
+  if (v === "upgraded precon") return "Upgraded Precon";
+  if (v === "optimized") return "Optimized";
+  if (v === "cedh") return "cEDH";
+  if (v === "hbw") return "Homebrew";
+  if (v === "other") return "Homebrew";
+
+  return "Homebrew";
+}
+
 function normalizeGameSpeed(value) {
   const v = String(value || "").trim().toLowerCase();
 
